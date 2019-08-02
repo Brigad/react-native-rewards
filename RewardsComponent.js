@@ -1,8 +1,12 @@
 import React, { Component, createRef } from 'react';
 import PropTypes from 'prop-types';
-import { Text, View, Animated } from 'react-native';
+import { View } from 'react-native';
 import posed from 'react-native-pose';
-import { generateConfettiItems, generateConfettiInitialTranslations, generateConfettiAnimations } from './confetti';
+import {
+  generateConfettiItems,
+  generateConfettiInitialTranslations,
+  generateConfettiAnimations,
+} from './confetti';
 import { generateEmojiItems } from './emoji';
 
 const confecttiCount = 40;
@@ -13,6 +17,7 @@ const SpringAnim = posed.View({
       type: 'spring',
       stiffness: 200,
       damping: 2,
+      useNativeDriver: true,
     },
   },
   punished: {
@@ -21,6 +26,7 @@ const SpringAnim = posed.View({
       type: 'spring',
       stiffness: 200,
       damping: 2,
+      useNativeDriver: true,
     },
   },
   rest: {
@@ -30,14 +36,15 @@ const SpringAnim = posed.View({
       type: 'spring',
       stiffness: 200,
       damping: 2,
+      useNativeDriver: true,
     },
   },
 });
 class RewardsComponent extends Component {
-  state={
+  state = {
     translations: generateConfettiInitialTranslations(confecttiCount, 0),
     state: null,
-  }
+  };
 
   constructor(props) {
     super(props);
@@ -45,8 +52,22 @@ class RewardsComponent extends Component {
   }
 
   get animationParams() {
-    const { initialSpeed, spread, deacceleration, rotationXSpeed, rotationZSpeed } = this.props;
-    const params = { initialSpeed, spread, deacceleration, rotationXSpeed, rotationZSpeed };
+    const {
+      initialSpeed,
+      spread,
+      deacceleration,
+      rotationXSpeed,
+      rotationYSpeed,
+      rotationZSpeed,
+    } = this.props;
+    const params = {
+      initialSpeed,
+      spread,
+      deacceleration,
+      rotationXSpeed,
+      rotationYSpeed,
+      rotationZSpeed,
+    };
     return params;
   }
 
@@ -78,35 +99,51 @@ class RewardsComponent extends Component {
       default:
     }
   }
+
+  translations = generateConfettiInitialTranslations(confecttiCount);
+
   async rewardMe() {
     this.setState({ state: 'clicked' });
-    const translations = generateConfettiInitialTranslations(confecttiCount);
-
-    this.setState({ translations }, () => generateConfettiAnimations(translations, this.animationParams));
+    generateConfettiAnimations(this.translations, this.animationParams);
     this.rest();
   }
+
+  items = null;
+
   render() {
     const { children, animationType, colors, emojis } = this.props;
-    const { translations, state } = this.state;
-    let items;
-    switch (animationType) {
-      case 'confetti':
-        items = generateConfettiItems(translations, confecttiCount, colors);
-        break;
-      case 'emoji':
-        items = generateEmojiItems(translations, confecttiCount, emojis);
-        break;
-      default:
-        items = generateConfettiItems(translations, confecttiCount, colors);
+    const { state } = this.state;
+    if (!this.items) {
+      switch (animationType) {
+        case 'confetti':
+          this.items = generateConfettiItems(
+            this.translations,
+            confecttiCount,
+            colors,
+          );
+          break;
+        case 'emoji':
+          this.items = generateEmojiItems(
+            this.translations,
+            confecttiCount,
+            emojis,
+          );
+          break;
+        default:
+          this.items = generateConfettiItems(
+            this.translations,
+            confecttiCount,
+            colors,
+          );
+      }
     }
+
     return (
       <View>
         <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-          {items}
+          {this.items}
         </View>
-        <SpringAnim pose={state}>
-          {children}
-        </SpringAnim>
+        <SpringAnim pose={state}>{children}</SpringAnim>
       </View>
     );
   }
@@ -117,6 +154,7 @@ RewardsComponent.propTypes = {
   spread: PropTypes.number,
   deacceleration: PropTypes.number,
   rotationXSpeed: PropTypes.number,
+  rotationYSpeed: PropTypes.number,
   rotationZSpeed: PropTypes.number,
   particiesCount: PropTypes.number,
   colors: PropTypes.array,
@@ -131,20 +169,11 @@ RewardsComponent.defaultProps = {
   spread: 1,
   deacceleration: 1,
   rotationXSpeed: 5,
+  rotationYSpeed: 5,
   rotationZSpeed: 5,
   particiesCount: 20,
-  colors: [
-    '#A45BF1',
-    '#25C6F6',
-    '#72F753',
-    '#F76C88',
-    '#F5F770',
-  ],
-  emojis: [
-    '👍',
-    '😊',
-    '🎉',
-  ],
+  colors: ['#A45BF1', '#25C6F6', '#72F753', '#F76C88', '#F5F770'],
+  emojis: ['👍', '😊', '🎉'],
   animationType: 'confetti',
   state: 'rest',
   onRest: () => {},
